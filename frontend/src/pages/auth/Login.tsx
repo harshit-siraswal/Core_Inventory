@@ -46,13 +46,14 @@ export function Login() {
   };
 
   return (
-    <div>
-      <h2 className="mt-8 text-2xl font-bold leading-9 tracking-tight text-gray-900">
+    <div className="animate-fade-in">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Welcome Back</p>
+      <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-slate-900 text-balance">
         Sign in to your account
       </h2>
-      <p className="mt-2 text-sm leading-6 text-gray-500">
+      <p className="mt-2 text-sm leading-6 text-slate-600">
         Not a member?{' '}
-        <Link to="/register" className="font-semibold text-indigo-600 hover:text-indigo-500">
+        <Link to="/register" className="font-semibold text-slate-900 underline-offset-4 hover:underline">
           Create an account
         </Link>
       </p>
@@ -70,7 +71,7 @@ export function Login() {
                 className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
               )}
             </div>
           </div>
@@ -81,7 +82,7 @@ export function Login() {
               <div className="text-sm leading-6">
                 <Link
                   to="/forgot-password"
-                  className="font-semibold text-indigo-600 hover:text-indigo-500"
+                  className="font-semibold text-slate-900 underline-offset-4 hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -96,12 +97,12 @@ export function Login() {
                 className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="h-11 w-full cursor-pointer" disabled={isSubmitting}>
             {isSubmitting ? 'Signing in...' : 'Sign in'}
           </Button>
 
@@ -110,14 +111,14 @@ export function Login() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">Or continue with</span>
+              <span className="bg-white px-2 text-slate-500">Or continue with</span>
             </div>
           </div>
 
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="h-11 w-full cursor-pointer"
             onClick={() => void loginWithGoogle()}
           >
             Sign in with Google
