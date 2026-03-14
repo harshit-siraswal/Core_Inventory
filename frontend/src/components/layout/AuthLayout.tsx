@@ -29,15 +29,23 @@ export function AuthLayout() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
-        <div className="mx-auto w-full max-w-sm lg:w-96">
+    <div className="relative flex min-h-screen overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        aria-hidden="true"
+        style={{
+          background:
+            'radial-gradient(850px circle at 10% 0%, rgba(245, 208, 114, 0.26), transparent 52%), radial-gradient(900px circle at 100% 0%, rgba(116, 140, 171, 0.2), transparent 44%)',
+        }}
+      />
+      <div className="relative z-10 flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+        <div className="surface-card mx-auto w-full max-w-sm p-6 lg:w-96">
           <Outlet />
         </div>
       </div>
       <div className="relative hidden w-0 flex-1 lg:block">
         <img
-          className="absolute inset-0 h-full w-full object-cover"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           src="/images/auth-bg.svg"
           alt="Inventory Background"
           onError={(event) => {

@@ -3,16 +3,78 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: oklch(0.965 0.003 250);
+    --foreground: oklch(0.2 0.015 250);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.2 0.015 250);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.2 0.015 250);
+    --primary: oklch(0.25 0.015 250);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.97 0.003 250);
+    --secondary-foreground: oklch(0.3 0.015 250);
+    --muted: oklch(0.96 0.003 250);
+    --muted-foreground: oklch(0.55 0.01 250);
+    --accent: oklch(0.78 0.18 85);
+    --accent-foreground: oklch(0.25 0.05 85);
+    --destructive: oklch(0.6 0.2 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(0.92 0.005 250);
+    --input: oklch(0.97 0.003 250);
+    --ring: oklch(0.55 0.12 250);
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.985 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.627 0.265 303.9);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.637 0.237 25.331);
+    --border: oklch(0.269 0 0);
+    --input: oklch(0.269 0 0);
+    --ring: oklch(0.439 0 0);
+  }
+
   * {
     box-sizing: border-box;
+    border-color: hsl(var(--border));
   }
 
   body {
     margin: 0;
     min-height: 100vh;
-    background: #f8fafc;
-    color: #0f172a;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-      Helvetica Neue, Arial, Noto Sans, sans-serif;
+    background:
+      radial-gradient(1200px circle at 0% -10%, rgba(245, 208, 114, 0.28), transparent 55%),
+      radial-gradient(1100px circle at 100% 0%, rgba(116, 140, 171, 0.24), transparent 45%),
+      hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'DM Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
+@layer utilities {
+  .surface-card {
+    @apply rounded-xl border bg-white/85 shadow-sm backdrop-blur;
+  }
+
+  .surface-card-strong {
+    @apply rounded-2xl border bg-white shadow-md;
+  }
+
+  .text-balance {
+    text-wrap: balance;
   }
 }

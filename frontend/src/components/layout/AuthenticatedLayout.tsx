@@ -34,12 +34,21 @@ export function AuthenticatedLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[260px_1fr]">
-        <aside className="border-r bg-white p-4">
-          <div className="mb-6 rounded-lg bg-slate-900 p-4 text-white">
-            <p className="text-xs uppercase tracking-wide text-slate-300">Core Inventory</p>
-            <p className="mt-2 text-sm font-semibold">{user.name}</p>
+    <div className="relative min-h-screen overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        aria-hidden="true"
+        style={{
+          background:
+            'radial-gradient(900px circle at 5% 0%, rgba(245, 208, 114, 0.28), transparent 55%), radial-gradient(900px circle at 95% 10%, rgba(116, 140, 171, 0.22), transparent 45%)',
+        }}
+      />
+
+      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[280px_1fr]">
+        <aside className="relative z-10 border-r border-slate-200/70 bg-white/80 p-4 backdrop-blur">
+          <div className="mb-6 surface-card-strong bg-slate-900 p-4 text-white">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-300">Core Inventory</p>
+            <p className="mt-2 text-sm font-semibold text-balance">{user.name}</p>
             <p className="text-xs text-slate-300">{user.role}</p>
           </div>
 
@@ -53,9 +62,9 @@ export function AuthenticatedLayout() {
                   end={item.to === '/'}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
+                      'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
                       isActive
-                        ? 'bg-slate-900 text-white'
+                        ? 'bg-slate-900 text-white shadow-sm'
                         : 'text-slate-700 hover:bg-slate-100',
                     )
                   }
@@ -72,7 +81,7 @@ export function AuthenticatedLayout() {
           </Button>
         </aside>
 
-        <main className="p-4 md:p-8">
+        <main className="relative z-10 p-4 md:p-8">
           <Outlet />
         </main>
       </div>

@@ -29,9 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
+      const forceStop = window.setTimeout(() => {
+        setLoading(false);
+      }, 3500);
+
       const savedGoogleUser = localStorage.getItem('google_user');
       if (savedGoogleUser) {
         setUser(JSON.parse(savedGoogleUser) as User);
+        window.clearTimeout(forceStop);
         setLoading(false);
         return;
       }
@@ -39,12 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = localStorage.getItem('access_token');
       if (token) {
         try {
-          const res = await api.get('/auth/profile');
+          const res = await api.get('/auth/profile', { timeout: 3000 });
           setUser(res.data.data);
         } catch (error) {
           localStorage.removeItem('access_token');
         }
       }
+      window.clearTimeout(forceStop);
       setLoading(false);
     };
 
