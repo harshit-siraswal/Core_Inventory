@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { deliveries, type Delivery } from "@/lib/mock-data";
+import { printDeliveryInvoice } from "@/lib/invoice-print";
 import { Eye } from "lucide-react";
 import { toast } from "sonner";
 
@@ -130,7 +131,13 @@ export default function DeliveryPage() {
                     if (!selected) {
                       return;
                     }
-                    toast.success(`Print queued for ${selected.reference}`);
+                    try {
+                      printDeliveryInvoice(selected);
+                      toast.success(`Printing invoice for ${selected.reference}`);
+                    } catch (error) {
+                      const message = error instanceof Error ? error.message : "Unable to print invoice.";
+                      toast.error(message);
+                    }
                   }}
                 >
                   Print

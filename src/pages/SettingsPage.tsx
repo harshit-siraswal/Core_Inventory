@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function SettingsPage() {
+  const { isDark, setTheme } = useTheme();
   const [companyName, setCompanyName] = useState("CoreInventory Demo");
   const [defaultWarehouse, setDefaultWarehouse] = useState("Main Warehouse (MW)");
   const [currency, setCurrency] = useState("NGN (₦)");
@@ -49,6 +51,14 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Email Alerts</span>
             <Switch checked={emailAlerts} onCheckedChange={setEmailAlerts} />
+          </div>
+          <Separator />
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Dark Mode</span>
+            <Switch
+              checked={isDark}
+              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+            />
           </div>
           <Separator />
           <div className="flex items-center justify-between">
