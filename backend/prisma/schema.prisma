@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Users & Auth ──────────────────────────────────────────
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String?    @map("password_hash") // null for Firebase-only users
+  firebaseUid  String?    @unique @map("firebase_uid") // null for local-auth users
+  refreshTokenHash String? @map("refresh_token_hash")
+  name         String
+  role         Role       @default(STAFF)
+  status       UserStatus @default(ACTIVE)
+
+  transactions Transaction[] @relation("CreatedTransactions")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  STAFF
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// ── Locations ─────────────────────────────────────────────
+
+model Location {
+  id     String         @id @default(uuid())
+  code   String         @unique
+  name   String
+  type   LocationType
+  status LocationStatus @default(ACTIVE)
+
+  stocks Stock[]
+  moves  StockMove[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("locations")
+}
+
+enum LocationType {
+  WAREHOUSE
+  STORE
+  INTERNAL
+}
+
+enum LocationStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// ── Categories ────────────────────────────────────────────
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  products    Product[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("categories")
+}
+
+// ── Products ──────────────────────────────────────────────
+
+model Product {
+  id          String  @id @default(uuid())
+  sku         String  @unique
+  name        String
+  description String?
+
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  minStockLevel Int           @default(0) @map("min_stock_level")
+  status        ProductStatus @default(ACTIVE)
+
+  stocks Stock[]
+  lines  TransactionLine[]
+  moves  StockMove[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("products")
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}
+
+// ── Stock Levels (per product per location) ───────────────
+
+model Stock {
+  id         String   @id @default(uuid())
+  productId  String   @map("product_id")
+  product    Product  @relation(fields: [productId], references: [id])
+  locationId String   @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
+
+  quantity           Int      @default(0)
+  lastCalculatedDate DateTime @default(now()) @map("last_calculated_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@index([locationId])
+  @@unique([productId, locationId])
+  @@map("stocks")
+}
+
+// ── Transactions (Receipts, Deliveries, Transfers, Adjustments) ──
+
+model Transaction {
+  id          String            @id @default(uuid())
+  type        TransactionType
+  status      TransactionStatus @default(DRAFT)
+  referenceNo String            @unique @map("reference_no")
+
+  sourceConfig      Json? @map("source_config")
+  destinationConfig Json? @map("destination_config")
+
+  createdById String @map("created_by_id")
+  createdBy   User   @relation("CreatedTransactions", fields: [createdById], references: [id])
+
+  totalVolume Int?    @map("total_volume")
+  notes       String?
+
+  lines TransactionLine[]
+  moves StockMove[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@index([type, status])
+  @@index([status, createdAt])
+  @@map("transactions")
+}
+
+enum TransactionType {
+  RECEIPT
+  DELIVERY
+  TRANSFER
+  ADJUSTMENT
+}
+
+enum TransactionStatus {
+  DRAFT
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+// ── Transaction Lines ─────────────────────────────────────
+
+model TransactionLine {
+  id            String      @id @default(uuid())
+  transactionId String      @map("transaction_id")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  productId     String      @map("product_id")
+  product       Product     @relation(fields: [productId], references: [id])
+
+  quantity Int
+  notes    String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("transaction_lines")
+}
+
+// ── Stock Moves (Immutable Ledger) ────────────────────────
+
+model StockMove {
+  id            String      @id @default(uuid())
+  productId     String      @map("product_id")
+  product       Product     @relation(fields: [productId], references: [id])
+  locationId    String      @map("location_id")
+  location      Location    @relation(fields: [locationId], references: [id])
+  transactionId String      @map("transaction_id")
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  quantity Int      // (+) inward, (-) outward
+  date     DateTime
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([productId, locationId, date])
+  @@index([transactionId])
+  @@map("stock_moves")
+}

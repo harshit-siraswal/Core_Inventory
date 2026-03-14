@@ -1,6 +1,15 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  type User,
+} from "firebase/auth";
+import { auth, googleProvider } from "@/lib/firebase";
 
 interface AuthUser {
+  id: string;
   email: string;
   name: string;
 }
@@ -13,26 +22,32 @@ interface AuthContextValue {
   logout: () => void;
 }
 
-const AUTH_USER_KEY = "core_inventory_auth_user";
-
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function mapFirebaseUser(firebaseUser: User): AuthUser {
+  return {
+    id: firebaseUser.uid,
+    email: firebaseUser.email ?? "unknown@example.com",
+    name: firebaseUser.displayName ?? firebaseUser.email?.split("@")[0] ?? "User",
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(AUTH_USER_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as AuthUser;
-        if (parsed?.email) {
-          setUser(parsed);
-        }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(mapFirebaseUser(firebaseUser));
+      } else {
+        setUser(null);
       }
-    } finally {
       setLoading(false);
-    }
+
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -40,29 +55,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("Email and password are required");
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const mappedUser: AuthUser = {
-      email: normalizedEmail,
-      name: normalizedEmail.split("@")[0] || "User",
-    };
-
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(mappedUser));
-    setUser(mappedUser);
+    const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
+    setUser(mapFirebaseUser(credential.user));
   };
 
-  const logout = () => {
-    localStorage.removeItem(AUTH_USER_KEY);
+  const logout = async () => {
+    await signOut(auth);
     setUser(null);
   };
 
   const loginWithGoogle = async () => {
-    const mappedUser: AuthUser = {
-      email: "google.user@example.com",
-      name: "Google User",
-    };
-
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(mappedUser));
-    setUser(mappedUser);
+    const credential = await signInWithPopup(auth, googleProvider);
+    setUser(mapFirebaseUser(credential.user));
   };
 
   const value = useMemo(

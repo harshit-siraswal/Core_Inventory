@@ -98,7 +98,7 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Demo mode: use any valid email and password.
+            Use your Firebase-authenticated account credentials.
           </p>
         </CardContent>
       </Card>
