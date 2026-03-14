@@ -7,12 +7,15 @@ import {
   Truck,
   History,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -44,7 +47,6 @@ const configItems = [
 function NavGroup({ label, items }: { label: string; items: typeof mainItems }) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
 
   return (
     <SidebarGroup>
@@ -75,6 +77,8 @@ function NavGroup({ label, items }: { label: string; items: typeof mainItems }) 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -95,6 +99,23 @@ export function AppSidebar() {
         <NavGroup label="Operations" items={operationItems} />
         <NavGroup label="Configuration" items={configItems} />
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => {
+                logout();
+                navigate("/login", { replace: true });
+              }}
+              className="hover:bg-accent/60"
+            >
+              <LogOut className="mr-2 h-4 w-4 shrink-0" />
+              {!collapsed && <span>Logout {user ? `(${user.name})` : ""}</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
