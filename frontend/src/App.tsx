@@ -1,121 +1,72 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './hooks/useAuth';
+import { Toaster } from 'sonner';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { AuthLayout } from './components/layout/AuthLayout';
+import { AuthenticatedLayout } from './components/layout/AuthenticatedLayout';
 
+import { Login } from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
+import { ForgotPassword } from './pages/auth/ForgotPassword';
+import { ResetPassword } from './pages/auth/ResetPassword';
+
+// Features - Dashboard
+import { DashboardView } from './features/dashboard/views/DashboardView';
+
+// Features - Inventory
+import { CategoriesView } from './features/inventory/views/CategoriesView';
+import { ProductsView } from './features/inventory/views/ProductsView';
+import { LocationsView } from './features/inventory/views/LocationsView';
+import { CreateProductView } from './features/inventory/views/CreateProductView';
+import { EditProductView } from './features/inventory/views/EditProductView';
+
+// Features - Operations (Mocks)
+import { AdjustmentsView } from './features/operations/views/AdjustmentsView';
+import { InternalTransfersView } from './features/operations/views/InternalTransfersView';
+import { DeliveriesView } from './features/operations/views/DeliveriesView';
+import { ReceiptsView } from './features/operations/views/ReceiptsView';
+import { MovementHistoryView } from './features/operations/views/MovementHistoryView';
+
+export function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* Public Auth Routes */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Route>
 
-      <div className="ticks"></div>
+          {/* Protected Routes */}
+          <Route path="/" element={<AuthenticatedLayout />}>
+            <Route index element={<DashboardView />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            {/* Master Data */}
+            <Route path="products" element={<ProductsView />} />
+            <Route path="products/new" element={<CreateProductView />} />
+            <Route path="products/:id/edit" element={<EditProductView />} />
+            
+            <Route path="categories" element={<CategoriesView />} />
+            <Route path="locations" element={<LocationsView />} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+            {/* Operations placeholders */}
+            <Route path="adjustments" element={<AdjustmentsView />} />
+            <Route path="transfers" element={<InternalTransfersView />} />
+            <Route path="deliveries" element={<DeliveriesView />} />
+            <Route path="receipts" element={<ReceiptsView />} />
+            <Route path="history" element={<MovementHistoryView />} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster richColors position="top-right" />
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

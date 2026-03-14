@@ -4,22 +4,26 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// User model for auth (Integrating with Firebase)
+// ── Users & Auth ──────────────────────────────────────────
+
 model User {
-  id          String     @id @default(uuid())
-  email       String     @unique
-  firebaseUid String     @unique // Links local user profile to Firebase identity
-  name        String
-  role        Role       @default(VIEWER)
-  status      UserStatus @default(ACTIVE)
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String?    @map("password_hash") // null for Firebase-only users
+  firebaseUid  String?    @unique @map("firebase_uid") // null for local-auth users
+  refreshTokenHash String? @map("refresh_token_hash")
+  name         String
+  role         Role       @default(STAFF)
+  status       UserStatus @default(ACTIVE)
 
   transactions Transaction[] @relation("CreatedTransactions")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("users")
 }
 
 enum Role {
@@ -34,10 +38,11 @@ enum UserStatus {
   INACTIVE
 }
 
-// Physical or logical locations
+// ── Locations ─────────────────────────────────────────────
+
 model Location {
   id     String         @id @default(uuid())
-  code   String         @unique // e.g., "WH-A1"
+  code   String         @unique
   name   String
   type   LocationType
   status LocationStatus @default(ACTIVE)
@@ -45,14 +50,16 @@ model Location {
   stocks Stock[]
   moves  StockMove[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("locations")
 }
 
 enum LocationType {
   WAREHOUSE
   STORE
-  INTERNAL // e.g., Transit or holding areas
+  INTERNAL
 }
 
 enum LocationStatus {
@@ -60,36 +67,42 @@ enum LocationStatus {
   INACTIVE
 }
 
-// Product classifications
+// ── Categories ────────────────────────────────────────────
+
 model Category {
   id          String    @id @default(uuid())
   name        String    @unique
   description String?
   products    Product[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("categories")
 }
 
-// Items held in inventory
+// ── Products ──────────────────────────────────────────────
+
 model Product {
   id          String  @id @default(uuid())
   sku         String  @unique
   name        String
   description String?
 
-  categoryId String
+  categoryId String   @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id])
 
-  minStockLevel Int           @default(0)
+  minStockLevel Int           @default(0) @map("min_stock_level")
   status        ProductStatus @default(ACTIVE)
 
   stocks Stock[]
   lines  TransactionLine[]
   moves  StockMove[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("products")
 }
 
 enum ProductStatus {
@@ -98,46 +111,52 @@ enum ProductStatus {
   DISCONTINUED
 }
 
-// Current stock levels per location
+// ── Stock Levels (per product per location) ───────────────
+
 model Stock {
   id         String   @id @default(uuid())
-  productId  String
+  productId  String   @map("product_id")
   product    Product  @relation(fields: [productId], references: [id])
-  locationId String
+  locationId String   @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  quantity           Int      @default(0) // Can be negative for specific operational needs (e.g. oversold), though logic should prevent
-  lastCalculatedDate DateTime @default(now())
+  quantity           Int      @default(0)
+  lastCalculatedDate DateTime @default(now()) @map("last_calculated_date")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
 
+  @@index([locationId])
   @@unique([productId, locationId])
+  @@map("stocks")
 }
 
-// The core operational document (Receipt, Delivery, Transfer, Adjustment)
+// ── Transactions (Receipts, Deliveries, Transfers, Adjustments) ──
+
 model Transaction {
   id          String            @id @default(uuid())
   type        TransactionType
   status      TransactionStatus @default(DRAFT)
-  referenceNo String            @unique // Auto-generated document number (e.g. REC-2026-0001)
+  referenceNo String            @unique @map("reference_no")
 
-  // Storing source/dest context directly on the transaction to decouple from specific models,
-  // making it flexible for transfers vs receipts
-  sourceConfig      Json? // e.g., { type: "VENDOR", id: "ven_1" } or { type: "LOCATION", id: "loc_1" }
-  destinationConfig Json? // e.g., { type: "LOCATION", id: "loc_2" }
+  sourceConfig      Json? @map("source_config")
+  destinationConfig Json? @map("destination_config")
 
-  createdById String
+  createdById String @map("created_by_id")
   createdBy   User   @relation("CreatedTransactions", fields: [createdById], references: [id])
 
-  totalVolume Int? // Cached total quantity for quick querying
+  totalVolume Int?    @map("total_volume")
   notes       String?
 
   lines TransactionLine[]
   moves StockMove[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@index([type, status])
+  @@index([status, createdAt])
+  @@map("transactions")
 }
 
 enum TransactionType {
@@ -154,30 +173,41 @@ enum TransactionStatus {
   CANCELLED
 }
 
-// Items within a transaction
+// ── Transaction Lines ─────────────────────────────────────
+
 model TransactionLine {
   id            String      @id @default(uuid())
-  transactionId String
+  transactionId String      @map("transaction_id")
   transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  productId     String
+  productId     String      @map("product_id")
   product       Product     @relation(fields: [productId], references: [id])
 
   quantity Int
   notes    String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt      @map("updated_at")
+
+  @@map("transaction_lines")
 }
 
-// The immutable ledger of all stock changes
+// ── Stock Moves (Immutable Ledger) ────────────────────────
+
 model StockMove {
   id            String      @id @default(uuid())
-  productId     String
+  productId     String      @map("product_id")
   product       Product     @relation(fields: [productId], references: [id])
-  locationId    String
+  locationId    String      @map("location_id")
   location      Location    @relation(fields: [locationId], references: [id])
-  transactionId String
+  transactionId String      @map("transaction_id")
   transaction   Transaction @relation(fields: [transactionId], references: [id])
 
-  quantity Int // (+) for inward movement, (-) for outward
-  date     DateTime @default(now())
+  quantity Int      // (+) inward, (-) outward
+  date     DateTime
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([productId, locationId, date])
+  @@index([transactionId])
+  @@map("stock_moves")
 }
