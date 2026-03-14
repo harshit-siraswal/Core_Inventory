@@ -9,6 +9,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
 }
 
@@ -54,8 +55,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const loginWithGoogle = async () => {
+    const mappedUser: AuthUser = {
+      email: "google.user@example.com",
+      name: "Google User",
+    };
+
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(mappedUser));
+    setUser(mappedUser);
+  };
+
   const value = useMemo(
-    () => ({ user, loading, login, logout }),
+    () => ({ user, loading, login, loginWithGoogle, logout }),
     [user, loading],
   );
 

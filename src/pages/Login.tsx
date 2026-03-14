@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
 
   const fromPath = (location.state as { from?: string } | null)?.from || "/";
 
@@ -27,6 +27,20 @@ export default function LoginPage() {
       navigate(fromPath, { replace: true });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to login");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onGoogleSignIn = async () => {
+    setSubmitting(true);
+
+    try {
+      await loginWithGoogle();
+      toast.success("Signed in with Google");
+      navigate(fromPath, { replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to sign in with Google");
     } finally {
       setSubmitting(false);
     }
@@ -67,6 +81,19 @@ export default function LoginPage() {
 
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? "Signing in..." : "Sign in"}
+            </Button>
+
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <Button type="button" variant="outline" className="w-full" onClick={onGoogleSignIn} disabled={submitting}>
+              Sign in with Google
             </Button>
           </form>
 
