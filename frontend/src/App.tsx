@@ -26,6 +26,8 @@ import { InternalTransfersView } from './features/operations/views/InternalTrans
 import { DeliveriesView } from './features/operations/views/DeliveriesView';
 import { ReceiptsView } from './features/operations/views/ReceiptsView';
 import { MovementHistoryView } from './features/operations/views/MovementHistoryView';
+import { UserProfileView } from './features/settings/views/UserProfileView';
+import { LowStockAlertsView } from './features/settings/views/LowStockAlertsView';
 
 export function App() {
   return (
@@ -58,6 +60,10 @@ export function App() {
             <Route path="deliveries" element={<DeliveriesView />} />
             <Route path="receipts" element={<ReceiptsView />} />
             <Route path="history" element={<MovementHistoryView />} />
+
+            {/* Settings */}
+            <Route path="profile" element={<UserProfileView />} />
+            <Route path="alerts" element={<LowStockAlertsView />} />
           </Route>
 
           {/* Fallback */}
