@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { api } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../lib/firebase';
 
 interface User {
   id: string;
@@ -14,6 +16,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (token: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
 }
 
@@ -26,6 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
+      const savedGoogleUser = localStorage.getItem('google_user');
+      if (savedGoogleUser) {
+        setUser(JSON.parse(savedGoogleUser) as User);
+        setLoading(false);
+        return;
+      }
+
       const token = localStorage.getItem('access_token');
       if (token) {
         try {
@@ -69,15 +79,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+
+      const mappedUser: User = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email ?? 'unknown@example.com',
+        name: firebaseUser.displayName ?? 'Google User',
+        role: 'STAFF',
+      };
+
+      setUser(mappedUser);
+      localStorage.setItem('google_user', JSON.stringify(mappedUser));
+      localStorage.removeItem('access_token');
+      toast.success('Signed in with Google');
+      navigate('/');
+    } catch (error) {
+      toast.error('Google sign-in failed');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('google_user');
     setUser(null);
     toast.success('Logged out successfully');
     navigate('/login');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
