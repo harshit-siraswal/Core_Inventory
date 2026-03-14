@@ -48,12 +48,15 @@ export function Login() {
   return (
     <div className="animate-fade-in">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Welcome Back</p>
-      <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-slate-900 text-balance">
+      <h2 className="mt-2 text-3xl font-semibold leading-tight tracking-tight text-slate-900 text-balance dark:text-slate-100">
         Sign in to your account
       </h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">
+      <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
         Not a member?{' '}
-        <Link to="/register" className="font-semibold text-slate-900 underline-offset-4 hover:underline">
+        <Link
+          to="/register"
+          className="font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-slate-100"
+        >
           Create an account
         </Link>
       </p>
@@ -68,7 +71,11 @@ export function Login() {
                 type="email"
                 autoComplete="email"
                 {...register('email')}
-                className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={
+                  errors.email
+                    ? 'skeuo-input border-red-500 focus-visible:ring-red-500'
+                    : 'skeuo-input'
+                }
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
@@ -82,7 +89,7 @@ export function Login() {
               <div className="text-sm leading-6">
                 <Link
                   to="/forgot-password"
-                  className="font-semibold text-slate-900 underline-offset-4 hover:underline"
+                  className="font-semibold text-slate-900 underline-offset-4 hover:underline dark:text-slate-100"
                 >
                   Forgot password?
                 </Link>
@@ -94,7 +101,11 @@ export function Login() {
                 type="password"
                 autoComplete="current-password"
                 {...register('password')}
-                className={errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={
+                  errors.password
+                    ? 'skeuo-input border-red-500 focus-visible:ring-red-500'
+                    : 'skeuo-input'
+                }
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
@@ -102,7 +113,7 @@ export function Login() {
             </div>
           </div>
 
-          <Button type="submit" className="h-11 w-full cursor-pointer" disabled={isSubmitting}>
+          <Button type="submit" className="skeuo-btn h-11 w-full cursor-pointer" disabled={isSubmitting}>
             {isSubmitting ? 'Signing in...' : 'Sign in'}
           </Button>
 
@@ -111,14 +122,16 @@ export function Login() {
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-slate-500">Or continue with</span>
+              <span className="bg-white px-2 text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                Or continue with
+              </span>
             </div>
           </div>
 
           <Button
             type="button"
             variant="outline"
-            className="h-11 w-full cursor-pointer"
+            className="skeuo-btn-outline h-11 w-full cursor-pointer"
             onClick={() => void loginWithGoogle()}
           >
             Sign in with Google

@@ -1,5 +1,5 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 
 export function AuthLayout() {
@@ -7,6 +7,24 @@ export function AuthLayout() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldUseDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+    setIsDark(shouldUseDark);
+    document.documentElement.classList.toggle('dark', shouldUseDark);
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark((prev) => {
+      const next = !prev;
+      document.documentElement.classList.toggle('dark', next);
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+      return next;
+    });
+  };
 
   // If loading, you could show a spinner here
   if (loading) {
@@ -39,20 +57,31 @@ export function AuthLayout() {
         aria-hidden="true"
         style={{
           background:
-            'radial-gradient(850px circle at 10% 0%, rgba(245, 208, 114, 0.26), transparent 52%), radial-gradient(900px circle at 100% 0%, rgba(116, 140, 171, 0.2), transparent 44%)',
+            'radial-gradient(1000px circle at 0% -20%, rgba(245, 208, 114, 0.32), transparent 56%), radial-gradient(1000px circle at 100% 10%, rgba(120, 142, 175, 0.26), transparent 46%)',
         }}
       />
-      <div className="relative z-10 flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:px-14 xl:px-20">
+      <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="skeuo-toggle inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium"
+        >
+          <span>{isDark ? 'Dark' : 'Light'}</span>
+          <span aria-hidden="true">{isDark ? 'Moon' : 'Sun'}</span>
+        </button>
+      </div>
+
+      <div className="relative z-10 flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:px-10">
         <div
           className={
             isLoginPage
-              ? 'surface-card mx-auto w-full max-w-5xl overflow-hidden p-3 lg:grid lg:grid-cols-[1fr_340px] lg:gap-3'
-              : 'surface-card mx-auto w-full max-w-sm p-6 lg:w-96'
+              ? 'skeuo-shell mx-auto w-full max-w-5xl overflow-hidden p-3 lg:grid lg:grid-cols-[1fr_360px] lg:gap-3'
+              : 'skeuo-shell mx-auto w-full max-w-sm p-6 lg:w-96'
           }
         >
           {isLoginPage && (
             <div
-              className="relative hidden overflow-hidden rounded-2xl border bg-slate-900 p-6 text-white lg:block"
+              className="skeuo-hero relative hidden overflow-hidden rounded-2xl border p-6 text-white lg:block"
               onMouseMove={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect();
                 const x = ((event.clientX - rect.left) / rect.width - 0.5) * 18;
@@ -107,7 +136,10 @@ export function AuthLayout() {
               </svg>
 
               <div className="relative z-10 flex h-full flex-col justify-between">
-                <p className="text-xs uppercase tracking-[0.18em] text-slate-300">Core Inventory</p>
+                <div className="flex items-center gap-2">
+                  <img src="/assets/source-icon.svg" alt="Core logo" className="h-7 w-7" />
+                  <p className="text-xs uppercase tracking-[0.18em] text-slate-300">Core Inventory</p>
+                </div>
                 <div>
                   <p className="text-2xl font-semibold leading-tight text-balance">
                     Track products, stock, and movement in one focused workspace.
@@ -121,19 +153,9 @@ export function AuthLayout() {
           )}
 
           <div className={isLoginPage ? 'p-3 sm:p-6' : ''}>
-          <Outlet />
+            <Outlet />
           </div>
         </div>
-      </div>
-      <div className="relative hidden w-0 flex-1 lg:block">
-        <img
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          src="/images/auth-bg.svg"
-          alt="Inventory Background"
-          onError={(event) => {
-            event.currentTarget.src = '/images/auth-bg-fallback.svg';
-          }}
-        />
       </div>
     </div>
   );
