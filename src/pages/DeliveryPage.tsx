@@ -7,9 +7,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { deliveries, type Delivery } from "@/lib/mock-data";
 import { Eye } from "lucide-react";
+import { toast } from "sonner";
 
 export default function DeliveryPage() {
+  const [deliveryRows, setDeliveryRows] = useState<Delivery[]>(deliveries);
   const [selected, setSelected] = useState<Delivery | null>(null);
+
+  const updateSelectedStatus = (status: Delivery["status"]) => {
+    if (!selected) {
+      return;
+    }
+
+    setDeliveryRows((previous) =>
+      previous.map((row) => (row.id === selected.id ? { ...row, status } : row)),
+    );
+    setSelected((previous) => (previous ? { ...previous, status } : previous));
+
+    toast.success(`Delivery ${selected.reference} marked as ${status}`);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -31,7 +46,7 @@ export default function DeliveryPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {deliveries.map((d) => (
+              {deliveryRows.map((d) => (
                 <TableRow key={d.id}>
                   <TableCell className="font-medium font-mono text-sm">{d.reference}</TableCell>
                   <TableCell>{d.date}</TableCell>
@@ -108,9 +123,24 @@ export default function DeliveryPage() {
                 </Table>
               </div>
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" size="sm">Print</Button>
-                <Button variant="outline" size="sm">Cancel</Button>
-                <Button size="sm">Validate</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!selected) {
+                      return;
+                    }
+                    toast.success(`Print queued for ${selected.reference}`);
+                  }}
+                >
+                  Print
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => updateSelectedStatus("draft")}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={() => updateSelectedStatus("validated")}>
+                  Validate
+                </Button>
               </div>
             </div>
           )}

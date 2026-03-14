@@ -7,9 +7,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { receipts, type Receipt } from "@/lib/mock-data";
 import { Eye } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ReceiptsPage() {
+  const [receiptRows, setReceiptRows] = useState<Receipt[]>(receipts);
   const [selected, setSelected] = useState<Receipt | null>(null);
+
+  const updateSelectedStatus = (status: Receipt["status"]) => {
+    if (!selected) {
+      return;
+    }
+
+    setReceiptRows((previous) =>
+      previous.map((row) => (row.id === selected.id ? { ...row, status } : row)),
+    );
+    setSelected((previous) => (previous ? { ...previous, status } : previous));
+    toast.success(`Receipt ${selected.reference} marked as ${status}`);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -32,7 +46,7 @@ export default function ReceiptsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {receipts.map((r) => (
+              {receiptRows.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium font-mono text-sm">{r.reference}</TableCell>
                   <TableCell>{r.date}</TableCell>
@@ -104,9 +118,24 @@ export default function ReceiptsPage() {
                 </Table>
               </div>
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" size="sm">Print</Button>
-                <Button variant="outline" size="sm">Cancel</Button>
-                <Button size="sm">Validate</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!selected) {
+                      return;
+                    }
+                    toast.success(`Print queued for ${selected.reference}`);
+                  }}
+                >
+                  Print
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => updateSelectedStatus("draft")}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={() => updateSelectedStatus("validated")}>
+                  Validate
+                </Button>
               </div>
             </div>
           )}
